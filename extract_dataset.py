@@ -23,7 +23,7 @@ def extract_action(zip_path: Path, class_dir: Path) -> None:
     with zipfile.ZipFile(zip_path, "r") as zf:
         avi_members = [m for m in zf.namelist() if m.lower().endswith(".avi")]
         for member in avi_members:
-            filename = Path(member).name          # strip any subfolder in zip
+            filename = Path(member).name  # strip any subfolder in zip
             dest = class_dir / filename
             with zf.open(member) as src, open(dest, "wb") as dst:
                 dst.write(src.read())
@@ -37,7 +37,7 @@ def main(zip_dir: Path, out_dir: Path) -> None:
     print(f"Output root: {out_dir.resolve()}\n")
 
     for action in ACTIONS:
-        zip_path  = zip_dir / f"{action}.zip"
+        zip_path = zip_dir / f"{action}.zip"
         class_dir = out_dir / action
         extract_action(zip_path, class_dir)
 
@@ -52,10 +52,10 @@ def main(zip_dir: Path, out_dir: Path) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--zip_dir", default="data",
-                        help="Folder containing the 6 zip files (default: data/)")
-    parser.add_argument("--out_dir", default="data/kth_actions",
-                        help="Output root folder for extracted videos (default: data/kth_actions/)")
+    parser.add_argument("--zip_dir", default="data", help="Folder containing the 6 zip files (default: data/)")
+    parser.add_argument(
+        "--out_dir", default="data/kth_actions", help="Output root folder for extracted videos (default: data/kth_actions/)"
+    )
     args = parser.parse_args()
 
     main(Path(args.zip_dir), Path(args.out_dir))

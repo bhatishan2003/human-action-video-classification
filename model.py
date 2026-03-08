@@ -7,6 +7,7 @@ NUM_CLASSES = 6  # walking, jogging, running, boxing, handwaving, handclapping
 
 # ─────────────────────────── Simple CNN Encoder ───────────────────────────────
 
+
 class CNN(nn.Module):
     """
     A straightforward 3-block convolutional encoder.
@@ -24,7 +25,7 @@ class CNN(nn.Module):
 
         # Block 1: 3 → 32 channels,  112×112 → 56×56
         self.block1 = nn.Sequential(
-            nn.Conv2d(in_channels=3,  out_channels=32, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, padding=1),
             nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
@@ -72,6 +73,7 @@ class CNN(nn.Module):
 
 # ─────────────────────────── Simple Vanilla RNN ───────────────────────────────
 
+
 class RNN(nn.Module):
     """
     A plain vanilla RNN using PyTorch's nn.RNN (tanh activation).
@@ -90,7 +92,7 @@ class RNN(nn.Module):
             input_size=input_dim,
             hidden_size=hidden_dim,
             num_layers=num_layers,
-            nonlinearity="tanh",   # vanilla RNN — no gating mechanism
+            nonlinearity="tanh",  # vanilla RNN — no gating mechanism
             batch_first=True,
             dropout=0.0,
             bidirectional=False,
@@ -110,11 +112,12 @@ class RNN(nn.Module):
         rnn_out, h_n = self.rnn(x)
 
         # We only need the last layer's hidden state at the final time step
-        h_T = h_n[-1]   # (B, hidden_dim)
+        h_T = h_n[-1]  # (B, hidden_dim)
         return h_T
 
 
 # ─────────────────────────── Full Model ───────────────────────────────────────
+
 
 class CNNRNN(nn.Module):
     """
@@ -126,10 +129,10 @@ class CNNRNN(nn.Module):
 
     def __init__(
         self,
-        num_classes:    int = NUM_CLASSES,
-        feature_dim:    int = 256,   # CNN output dim  (= RNN input dim)
-        hidden_dim:     int = 256,   # RNN hidden state dim
-        num_rnn_layers: int = 1,     # single-layer RNN keeps it simple
+        num_classes: int = NUM_CLASSES,
+        feature_dim: int = 256,  # CNN output dim  (= RNN input dim)
+        hidden_dim: int = 256,  # RNN hidden state dim
+        num_rnn_layers: int = 1,  # single-layer RNN keeps it simple
     ):
         super().__init__()
 
@@ -156,19 +159,20 @@ class CNNRNN(nn.Module):
         B, T, C, H, W = x.shape
 
         # ── 1. Extract per-frame spatial features with CNN ────────────────────
-        x = x.view(B * T, C, H, W)        # flatten batch + time: (B*T, C, H, W)
-        features = self.cnn(x)             # (B*T, feature_dim)
-        features = features.view(B, T, -1) # restore sequence:    (B, T, feature_dim)
+        x = x.view(B * T, C, H, W)  # flatten batch + time: (B*T, C, H, W)
+        features = self.cnn(x)  # (B*T, feature_dim)
+        features = features.view(B, T, -1)  # restore sequence:    (B, T, feature_dim)
 
         # ── 2. Model temporal dynamics with RNN ───────────────────────────────
-        h_T = self.rnn(features)           # (B, hidden_dim)
+        h_T = self.rnn(features)  # (B, hidden_dim)
 
         # ── 3. Classify from the final hidden state ───────────────────────────
-        logits = self.classifier(h_T)      # (B, num_classes)
+        logits = self.classifier(h_T)  # (B, num_classes)
         return logits
 
 
 # ─────────────────────── Utility ──────────────────────────────────────────────
+
 
 def build_model() -> CNNRNN:
     """Returns the model with default hyperparameters."""

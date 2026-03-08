@@ -7,7 +7,6 @@ Now includes:
 """
 
 import argparse
-import time
 from pathlib import Path
 
 import torch
@@ -16,7 +15,7 @@ from torch.optim import Adam
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
-from dataloader import get_dataloaders, ACTIONS
+from dataloader import get_dataloaders
 from model import build_model, count_parameters
 
 
@@ -60,10 +59,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device):
         correct += (preds == labels).sum().item()
         total += frames.size(0)
 
-        loop.set_postfix(
-            loss=f"{running_loss/total:.4f}",
-            acc=f"{100*correct/total:.1f}%"
-        )
+        loop.set_postfix(loss=f"{running_loss / total:.4f}", acc=f"{100 * correct / total:.1f}%")
 
     return running_loss / total, correct / total
 
@@ -91,10 +87,7 @@ def evaluate(model, loader, criterion, device):
         all_preds.extend(preds.cpu().tolist())
         all_labels.extend(labels.cpu().tolist())
 
-        loop.set_postfix(
-            val_loss=f"{running_loss/total:.4f}",
-            val_acc=f"{100*correct/total:.1f}%"
-        )
+        loop.set_postfix(val_loss=f"{running_loss / total:.4f}", val_acc=f"{100 * correct / total:.1f}%")
 
     return running_loss / total, correct / total, all_preds, all_labels
 
@@ -132,10 +125,10 @@ def plot_history(history, save_path):
 def main(cfg: dict):
     device = torch.device(cfg["device"])
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("  KTH Human Action Classification — Simple CNN + Simple RNN")
     print(f"  Device : {device}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     print("[1/4] Building dataloaders...")
     train_loader, val_loader, test_loader = get_dataloaders(
@@ -169,17 +162,13 @@ def main(cfg: dict):
     for epoch in range(1, cfg["epochs"] + 1):
         print(f"\nEpoch {epoch}/{cfg['epochs']}")
 
-        train_loss, train_acc = train_one_epoch(
-            model, train_loader, criterion, optimizer, device
-        )
+        train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
 
-        val_loss, val_acc, _, _ = evaluate(
-            model, val_loader, criterion, device
-        )
+        val_loss, val_acc, _, _ = evaluate(model, val_loader, criterion, device)
 
         print(
-            f"Train Loss: {train_loss:.4f} | Train Acc: {100*train_acc:.1f}%\n"
-            f"Val Loss  : {val_loss:.4f} | Val Acc  : {100*val_acc:.1f}%"
+            f"Train Loss: {train_loss:.4f} | Train Acc: {100 * train_acc:.1f}%\n"
+            f"Val Loss  : {val_loss:.4f} | Val Acc  : {100 * val_acc:.1f}%"
         )
 
         history["train_loss"].append(train_loss)
@@ -196,12 +185,9 @@ def main(cfg: dict):
     print("\n[4/4] Testing best model...")
     model.load_state_dict(torch.load(best_ckpt, map_location=device))
 
-    test_loss, test_acc, test_preds, test_labels = evaluate(
-        model, test_loader, criterion, device
-    )
+    test_loss, test_acc, test_preds, test_labels = evaluate(model, test_loader, criterion, device)
 
-    print(f"\nTest Accuracy: {100*test_acc:.2f}%")
-
+    print(f"\nTest Accuracy: {100 * test_acc:.2f}%")
 
     # ── PLOT ────────────────────────────────────────────────
     plot_path = ckpt_dir / "training_curves.png"
